@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Shift Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F1F5F9;color:#0F172A;font-size:14px;}
+.header{background:#0F172A;padding:18px 20px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.25);}
+.header-sub{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.header-date{font-size:16px;font-weight:800;color:#fff;margin-bottom:16px;}
+.tabs{display:flex;gap:2px;}
+.tab{padding:10px 20px;border:none;border-radius:5px 5px 0 0;cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:rgba(255,255,255,.45);transition:all .15s;font-family:inherit;}
+.tab.active{background:#F1F5F9;color:#0F172A;}
+.content{max-width:860px;margin:0 auto;padding:24px 16px 80px;}
+.page{display:none;}.page.active{display:block;}
+
+/* Cards */
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);margin-bottom:20px;overflow:hidden;border:2px solid #C8D3E0;}
+.card-header{padding:12px 20px;border-bottom:2px solid #C8D3E0;background:#F5F7FA;display:flex;align-items:center;gap:10px;}
+.card-accent{width:3px;height:16px;border-radius:2px;flex-shrink:0;}
+.card-title{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;}
+.card-body{padding:20px;}
+.subcard{border-radius:4px;padding:18px;margin-bottom:14px;border:2px solid #C8D3E0;background:#F8FAFC;}
+.subcard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.subcard-title{font-weight:800;font-size:15px;}
+
+/* Mandatory task */
+.mandatory-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mandatory-tick{display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid #C8D3E0;border-radius:4px;background:#fff;cursor:pointer;transition:all .15s;user-select:none;position:relative;}
+.mandatory-tick.unticked{border-color:#EF4444;background:#FEF2F2;}
+.mandatory-badge{position:absolute;top:-8px;right:8px;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:#EF4444;color:#fff;padding:2px 6px;border-radius:3px;}
+.tick-box{width:20px;height:20px;border-radius:3px;border:2px solid #94A3B8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.tick-lbl{font-size:13px;font-weight:600;color:#475569;}
+.tick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tick{display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid #C8D3E0;border-radius:4px;background:#fff;cursor:pointer;transition:all .15s;user-select:none;}
+
+/* Form */
+label.lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;margin-bottom:6px;min-height:28px;display:flex;align-items:flex-end;padding-bottom:6px;}
+input[type=text],input[type=time],select,textarea{width:100%;padding:10px 12px;border:2px solid #94A3B8;border-radius:4px;font-size:14px;font-family:inherit;background:#fff;color:#0F172A;outline:none;box-sizing:border-box;-webkit-appearance:none;appearance:none;}
+input[type=time]{min-height:42px;font-family:'Courier New',monospace;-webkit-appearance:none;}
+select{-webkit-appearance:auto;appearance:auto;min-height:42px;}
+textarea{resize:vertical;line-height:1.5;height:auto;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent,#7C3AED)!important;box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+input[inputmode=numeric]{font-family:'Courier New',monospace;}
+input::placeholder,textarea::placeholder{color:#94A3B8;}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+.field{margin-bottom:0;}
+.mt{margin-top:14px;}
+
+/* Buttons */
+.btn-add{width:100%;padding:11px 0;border:2px dashed #94A3B8;border-radius:4px;background:transparent;color:#64748B;font-weight:700;font-size:13px;cursor:pointer;margin-top:6px;font-family:inherit;}
+.btn-remove{background:none;border:1.5px solid #94A3B8;border-radius:4px;color:#64748B;cursor:pointer;font-size:12px;font-weight:600;padding:3px 10px;white-space:nowrap;font-family:inherit;}
+.btn-submit{width:100%;padding:16px 0;border-radius:4px;border:none;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-top:8px;letter-spacing:.02em;transition:background .3s;font-family:inherit;}
+.btn-yesno{display:flex;gap:8px;}
+.btn-yn{flex:1;padding:10px 0;border-radius:4px;border:2px solid #94A3B8;background:#fff;color:#64748B;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-team{flex:1;padding:13px 0;border-radius:4px;border:2px solid #94A3B8;background:#fff;color:#64748B;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-close-in{font-size:12px;font-weight:700;color:#DC2626;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:4px;padding:4px 12px;cursor:pointer;font-family:inherit;}
+.btn-promote{font-size:12px;font-weight:700;border-radius:4px;padding:4px 12px;cursor:pointer;font-family:inherit;border:1.5px solid;}
+
+/* Stats */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.stat-box{border-radius:4px;padding:16px 10px;text-align:center;border:2px solid #C8D3E0;}
+.stat-val{font-size:24px;font-weight:800;font-family:'Courier New',monospace;line-height:1;}
+.stat-lbl{font-size:10px;color:#64748B;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-top:6px;line-height:1.3;}
+.rft-badge{font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;}
+
+/* Divider */
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0 16px;}
+.divider-line{flex:1;height:1px;background:#C8D3E0;}
+.divider-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748B;white-space:nowrap;}
+
+/* Alerts */
+.alert{border-radius:4px;padding:12px 16px;margin-top:14px;}
+.alert-warn{background:#FFFBEB;border:2px solid #FCD34D;}
+.alert-warn-title{font-size:11px;font-weight:700;color:#92400E;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;}
+.alert-warn-body{font-size:13px;color:#78350F;}
+.alert-success{background:#F0FDF4;border:2px solid #86EFAC;font-size:13px;font-weight:700;color:#15803D;padding:12px 16px;border-radius:4px;margin-top:14px;}
+.formula-note{font-size:11px;color:#64748B;padding:10px 14px;background:#F8FAFC;border-radius:4px;line-height:1.7;border:1px solid #C8D3E0;}
+
+/* IN */
+.in-row{background:#F8FAFC;border-radius:4px;padding:14px;margin-bottom:10px;border:2px solid #C8D3E0;}
+.in-row-new{border-radius:4px;padding:14px;margin-bottom:10px;border:2px solid;}
+.in-worked{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.in-worked-box{width:18px;height:18px;border-radius:3px;border:2px solid #94A3B8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.in-row-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+.in-worked-detail{margin-top:10px;padding-top:10px;border-top:1px solid #C8D3E0;}
+
+/* EOD tasks */
+.eod-task{border:2px solid #C8D3E0;border-radius:4px;padding:14px;margin-bottom:10px;background:#fff;}
+.eod-task.mandatory-eod{border-color:#7C3AED;}
+.eod-mandatory-label{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7C3AED;margin-bottom:8px;}
+
+/* Priority */
+.priority-card{border:2px solid #C8D3E0;border-radius:4px;padding:16px;margin-bottom:12px;background:#fff;}
+.priority-card.carried{border-color:#F59E0B;background:#FFFBEB;}
+.priority-carried-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:#F59E0B;color:#fff;padding:2px 8px;border-radius:3px;margin-bottom:10px;}
+
+/* Seal */
+.seal-target{margin-top:6px;font-size:12px;font-weight:700;}
+.summary-placeholder{padding:24px 0;text-align:center;color:#64748B;font-size:13px;line-height:1.6;}
+
+/* Stage timing */
+.stage-block{background:#F8FAFC;border:2px solid #C8D3E0;border-radius:4px;padding:14px;margin-bottom:4px;}
+.stage-title{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;}
+.on-time-indicator{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-sub">Shift Report</div>
+  <div class="header-date" id="headerDate"></div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('process',this)">Process</button>
+    <button class="tab" onclick="switchTab('lab',this)">Production Lab</button>
+    <button class="tab" onclick="switchTab('summary',this)">Summary</button>
+  </div>
+</div>
+<div class="content">
+  <div id="page-process" class="page active"></div>
+  <div id="page-lab" class="page"></div>
+  <div id="page-summary" class="page"></div>
+</div>
+<script>
+let activeTab = 'process';
+const uid = () => Math.random().toString(36).slice(2,9);
+const pct = (n,d) => { const v=(+n/+d)*100; return isFinite(v)&&+d>0?v.toFixed(1)+'%':'—'; };
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const todayStr = () => new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+const TEAM_COLORS = {
+  purple:{light:'#F5F0FF',accent:'#7C3AED',label:'Purple'},
+  orange:{light:'#FFF4ED',accent:'#EA580C',label:'Orange'},
+  yellow:{light:'#FEFCE8',accent:'#FBBF24',label:'Yellow'},
+  blue:  {light:'#EFF6FF',accent:'#1D4ED8',label:'Blue'},
+  green: {light:'#F0FDF4',accent:'#15803D',label:'Green'},
+};
+const REJECTION_CAUSES = ['Plates rejected before dosing','Blank plates','Double dose / Empty well','Half dose plate','Stuck plate','Dirty plate','Drip on plate','Others'];
+const TC_OPTIONS = ['TC1','TC2','TC3','TC5'];
+const PACKING_LINES = ['Packing Line 1','Packing Line 2'];
+const SEAL_TYPES = ['12 Hole Seals','4 Hole Seals'];
+const PROCESS_ANCILLARY = ['SAP','Dryer Traces','Seals with Skirt Labels','Sales Cartons','Tier Board','Batch Tracker'];
+const INCIDENT_TYPES = ['Incident','Near Miss','Hazard'];
+const LAB_MANDATORY_TASKS = ['Environmental Monitoring','Water Conductivity','COBOT Safety Checks','Documents to QA','Documents to Team Leader','Documents to Logistics'];
+const LAB_STAGES = [
+  {key:'dissolution',label:'Dissolution'},
+  {key:'dosing',     label:'Dosing'},
+  {key:'pouring',    label:'Pouring'},
+  {key:'priming',    label:'Priming'},
+];
+const EOD_TASKS_YESNO = [
+  {key:'ancillaries',    label:'Ancillaries Completed'},
+  {key:'weighUps',       label:'Weigh Ups Completed'},
+  {key:'subBatching',    label:'Sub-Batching Completed'},
+  {key:'goPro',          label:'GoPro Footage Transferred'},
+  {key:'stockCheck',     label:'Stock Check for Next Day'},
+  {key:'batchAmend',     label:'Batch Amendments'},
+  {key:'additionalTasks',label:'Additional Tasks Completed (Solutions / Batches / Items)'},
+];
+const EOD_TASKS_MANDATORY = [
+  {key:'plaBackup',  label:'PLA Backup'},
+  {key:'stockCheck', label:'Stock Check for Next Day'},
+];
+
+// ── Factories ──────────────────────────────────────────────────────────────────
+const newPump      = () => ({id:uid(),batchNo:'',plateRef:'',timeReceived:'',timeFinished:'',tc:'',rejections:[],scheduledPlates:'',actualDispensed:'',notDispensedReason:'',issues:''});
+const newRej       = () => ({id:uid(),cause:'',count:''});
+const newMornPack  = () => ({id:uid(),batchNo:'',plateRef:'',plateCount:'',timeStarted:'',timeFinished:'',reworks:'',totalPacked:'',shortfall:false,shortfallReason:''});
+const newPackSess  = () => ({id:uid(),pumpId:'',batchNo:'',plateRef:'',plateCount:'',timeStarted:'',timeFinished:'',packingLine:'',reworks:'',totalPacked:'',fullyPacked:'',shortfallIssue:'',issues:''});
+const newSeal      = () => ({id:uid(),type:'',count:'',justification:''});
+const newIncident  = () => ({id:uid(),type:'',time:'',description:''});
+const newIN        = () => ({id:uid(),number:'',description:'',workedDetail:''});
+const newLabPump   = () => ({
+  id:uid(),
+  dissolution:{expectedStart:'',actualStart:'',expectedEnd:'',actualEnd:'',onTime:'',delayReason:''},
+  dosing:      {expectedStart:'',actualStart:'',expectedEnd:'',actualEnd:'',onTime:'',delayReason:''},
+  pouring:     {expectedStart:'',actualStart:'',expectedEnd:'',actualEnd:'',onTime:'',delayReason:''},
+  priming:     {expectedStart:'',actualStart:'',expectedEnd:'',actualEnd:'',onTime:'',delayReason:''},
+  delivery:    {expectedTime:'',actualTime:'',onTime:'',delayReason:''},
+  scheduledPlates:'',dispensedPlates:'',reprimes:[],
+});
+const newReprime   = () => ({id:uid(),reason:'',interruptionStart:'',interruptionEnd:''});
+const newPriority  = () => ({id:uid(),description:'',completed:'',notCompletedReason:'',carriedFrom:''});
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let state = {
+  process:{
+    team:'',headcount:{onShift:'',pto:'',absent:'',overtime:''},
+    openINs:JSON.parse(localStorage.getItem('process_openINs')||'[]'),
+    newINs:[],
+    incidents:[],morningPacks:[newMornPack()],pumps:[newPump()],
+    packSessions:[],seals:[newSeal()],ancillary:{},comments:''
+  },
+  lab:{
+    team:'',headcount:{onShift:'',pto:'',absent:'',overtime:''},
+    openINs:JSON.parse(localStorage.getItem('lab_openINs')||'[]'),
+    newINs:[],
+    incidents:[],mandatoryTasks:{},pumps:[newLabPump()],
+    eodTasks:{},priorities:[],comments:''
+  },
+  webhookUrl:localStorage.getItem('teamsWebhookUrl')||''
+};
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+  activeTab = tab;
+  render();
+}
+
+// ── HTML helpers ───────────────────────────────────────────────────────────────
+function renderSignInStatus(dept,accent){
+  if(CONFIG.DEMO_MODE) return '';
+  const label = dept==='process' ? 'UKEG2.Production' : 'UKEG2.Prodlab';
+  const signedIn = isSignedIn(dept);
+  return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:4px;margin-top:16px;border:2px solid ${signedIn?'#86EFAC':'#C8D3E0'};background:${signedIn?'#F0FDF4':'#F8FAFC'}">
+    <span style="font-size:12px;font-weight:700;color:${signedIn?'#15803D':'#64748B'}">${signedIn?`Signed in as ${label}`:`Not signed in — required to submit`}</span>
+    ${!signedIn?`<button class="btn-remove" style="border-color:${accent};color:${accent}" onclick="signIn('${dept}')">Sign in</button>`:''}
+  </div>`;
+}
+
+function card(title,accent,body){
+  const hdr = title?`<div class="card-header">${accent?`<div class="card-accent" style="background:${accent}"></div>`:''}
+    <span class="card-title" style="${accent?`color:${accent}`:''}">${esc(title)}</span></div>`:'';
+  return `<div class="card">${hdr}<div class="card-body">${body}</div></div>`;
+}
+function lbl(t){ return `<label class="lbl">${esc(t)}</label>`; }
+function field(l,inp,mt=false){ return `<div class="field${mt?' mt':''}">${l?lbl(l):''}${inp}</div>`; }
+function g2(a,b,mt=false){ return `<div class="g2${mt?' mt':''}">${a}${b}</div>`; }
+function txtIn(val,fn,ph=''){ return `<input type="text" value="${esc(val)}" oninput="${fn}" placeholder="${esc(ph)}"/>`; }
+function numIn(val,fn){ return `<input type="text" inputmode="numeric" pattern="[0-9]*" value="${esc(val)}" oninput="${fn}" placeholder="0"/>`; }
+function timeIn(val,fn){ return `<input type="time" value="${esc(val)}" oninput="${fn}"/>`; }
+function areaIn(val,fn,ph='',rows=2){ return `<textarea rows="${rows}" oninput="${fn}" placeholder="${esc(ph)}">${esc(val)}</textarea>`; }
+function selIn(val,fn,opts,ph='Select…'){
+  return `<select onchange="${fn}"><option value="">${esc(ph)}</option>${opts.map(o=>`<option value="${esc(o)}"${val===o?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+}
+function divider(l){ return `<div class="divider"><div class="divider-line"></div>${l?`<span class="divider-lbl">${esc(l)}</span>`:''}
+  <div class="divider-line"></div></div>`; }
+function addBtn(fn,l,accent){ return `<button class="btn-add" style="border-color:${accent};color:${accent}" onclick="${fn}">+ ${esc(l)}</button>`; }
+function removeBtn(fn){ return `<button class="btn-remove" onclick="${fn}">Remove</button>`; }
+function yesNo(val,fnY,fnN,accent){
+  return `<div class="btn-yesno">
+    <button class="btn-yn" style="${val==='yes'?`border-color:${accent};background:${accent}20;color:${accent}`:''}" onclick="${fnY}">Yes</button>
+    <button class="btn-yn" style="${val==='no'?`border-color:#EF4444;background:#FEF2F2;color:#EF4444`:''}" onclick="${fnN}">No</button>
+  </div>`;
+}
+
+// ── Shared: INs ────────────────────────────────────────────────────────────────
+function renderINs(dept,accent){
+  const d = state[dept];
+  let html = `<div style="margin-bottom:6px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <label class="lbl" style="margin:0;min-height:auto;padding:0">Currently Open INs</label>
+      <span style="font-size:11px;color:#64748B;font-style:italic">Carried forward until closed</span>
+    </div>`;
+  if(!d.openINs.length) html += `<div style="font-size:13px;color:#64748B;padding:10px 0 14px">No open INs on record.</div>`;
+  d.openINs.forEach(x=>{
+    const worked = !!x.workedOn;
+    html += `<div class="in-row">
+      ${g2(field('IN Number',txtIn(x.number,`updateOpenIN('${dept}','${x.id}','number',this.value)`)),
+           field('Description',txtIn(x.description,`updateOpenIN('${dept}','${x.id}','description',this.value)`)))}
+      <div class="in-row-footer">
+        <div class="in-worked" onclick="toggleWorkedOn('${dept}','${x.id}')">
+          <div class="in-worked-box" style="border-color:${worked?accent:'#94A3B8'};background:${worked?accent:'#fff'}">${worked?`<span style="color:#fff;font-size:10px;font-weight:800">✓</span>`:''}</div>
+          <span style="font-size:12px;font-weight:600;color:#475569">Worked on today</span>
+        </div>
+        <button class="btn-close-in" onclick="closeIN('${dept}','${x.id}')">Close IN</button>
+      </div>
+      ${worked?`<div class="in-worked-detail">${field('What was worked on',areaIn(x.workedDetail,`updateOpenIN('${dept}','${x.id}','workedDetail',this.value)`,'Describe what was done on this IN…'))}</div>`:''}</div>`;
+  });
+  html += addBtn(`addOpenIN('${dept}')`, 'Add Existing Open IN', accent)+'</div>';
+  html += `<div class="divider"><div class="divider-line"></div><span class="divider-lbl">New INs Opened Today</span><div class="divider-line"></div></div>`;
+  if(!d.newINs.length) html += `<div style="font-size:13px;color:#64748B;padding:4px 0 12px">No new INs opened today.</div>`;
+  d.newINs.forEach(x=>{
+    html += `<div class="in-row-new" style="background:${accent}07;border-color:${accent}">
+      ${g2(field('IN Number',txtIn(x.number,`updateNewIN('${dept}','${x.id}','number',this.value)`)),
+           field('Description',txtIn(x.description,`updateNewIN('${dept}','${x.id}','description',this.value)`)))}
+      <div class="in-row-footer">
+        <button class="btn-promote" style="color:${accent};background:${accent}12;border-color:${accent}" onclick="promoteIN('${dept}','${x.id}')">Add to Open INs</button>
+        ${removeBtn(`removeNewIN('${dept}','${x.id}')`)}
+      </div>
+    </div>`;
+  });
+  html += addBtn(`addNewIN('${dept}')`, 'Open New IN', accent);
+  return html;
+}
+
+// ── Shared: Safety ─────────────────────────────────────────────────────────────
+function renderIncidents(dept,accent){
+  const d = state[dept];
+  let html = !d.incidents.length?'<p style="font-size:13px;color:#64748B;margin-bottom:12px">No safety events recorded.</p>':'';
+  d.incidents.forEach(inc=>{
+    html += `<div class="subcard">
+      ${g2(field('Type',selIn(inc.type,`updateIncident('${dept}','${inc.id}','type',this.value)`,INCIDENT_TYPES,'Select type…')),
+           field('Time',timeIn(inc.time,`updateIncident('${dept}','${inc.id}','time',this.value)`)))}
+      <div class="mt">${field('Description',areaIn(inc.description,`updateIncident('${dept}','${inc.id}','description',this.value)`,'Describe what happened…'))}</div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">${removeBtn(`removeIncident('${dept}','${inc.id}')`)}</div>
+    </div>`;
+  });
+  return html + addBtn(`addIncident('${dept}')`, 'Add Safety Event', accent);
+}
+
+// ── PROCESS ────────────────────────────────────────────────────────────────────
+function renderProcess(){
+  const p = state.process;
+  const accent = p.team?TEAM_COLORS[p.team].accent:'#7C3AED';
+  let html = '';
+
+  // Team
+  html += card('Team',accent,`<div style="display:flex;gap:10px">${['purple','orange'].map(t=>{
+    const tc=TEAM_COLORS[t],a=p.team===t;
+    return `<button class="btn-team" style="border-color:${a?tc.accent:'#94A3B8'};background:${a?tc.light:'#fff'};color:${a?tc.accent:'#475569'}" onclick="setTeam('process','${t}')">${tc.label} Team</button>`;
+  }).join('')}</div>`);
+
+  // Headcount
+  const hc = p.headcount;
+  html += card('Headcount',accent,`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+    ${field('On Shift',numIn(hc.onShift,"setHC('process','onShift',this.value)"))}
+    ${field('PTO',numIn(hc.pto,"setHC('process','pto',this.value)"))}
+    ${field('Unplanned Absences',numIn(hc.absent,"setHC('process','absent',this.value)"))}
+    ${field('Overtime',numIn(hc.overtime,"setHC('process','overtime',this.value)"))}
+  </div>`);
+
+  // Quality
+  html += card('Quality — Investigation Notes (INs)',accent,renderINs('process',accent));
+
+  // Safety
+  html += card('Safety',accent,renderIncidents('process',accent));
+
+  // Morning Packing
+  html += card('Morning Packing',accent,
+    p.morningPacks.map((mp,i)=>renderMornPack(mp,i,accent)).join('') +
+    addBtn(`addMornPack('process')`,'Add Morning Pack',accent));
+
+  // Dispensing
+  html += card('Dispensing',accent,
+    p.pumps.map((pump,i)=>renderPump(pump,i,accent)).join('') +
+    (p.pumps.length<4?addBtn(`addPump('process')`,'Add Pump',accent):''));
+
+  // Afternoon Packing
+  const carryOvers = p.packSessions.filter(ps=>ps.fullyPacked==='carryover'&&ps.batchNo)
+    .map(ps=>({batchNo:ps.batchNo,plateRef:ps.plateRef,remaining:Math.max(0,(+ps.plateCount||0)-(+ps.totalPacked||0))}));
+  let aftBody = !p.packSessions.length?'<p style="font-size:13px;color:#64748B;margin-bottom:12px">No packing sessions added yet.</p>':'';
+  aftBody += p.packSessions.map((ps,i)=>renderPackSess(ps,i,accent)).join('');
+  aftBody += addBtn(`addPackSess('process')`,'Add Packing Session',accent);
+  if(carryOvers.length) aftBody += `<div class="alert alert-warn" style="margin-top:16px">
+    <div class="alert-warn-title">Carrying to Tomorrow Morning</div>
+    ${carryOvers.map(c=>`<div class="alert-warn-body"><strong>${esc(c.batchNo)}</strong> · ${esc(c.plateRef)} · <strong>${c.remaining} plates</strong></div>`).join('')}
+  </div>`;
+  html += card('Afternoon Packing',accent,aftBody);
+
+  // Performance
+  const totDisp  = p.pumps.reduce((s,pump)=>s+(+pump.actualDispensed||0),0);
+  const totRej   = p.pumps.reduce((s,pump)=>s+pump.rejections.reduce((rs,r)=>rs+(+r.count||0),0),0);
+  const totAft   = p.packSessions.reduce((s,ps)=>s+(+ps.totalPacked||0),0);
+  const totMorn  = p.morningPacks.reduce((s,mp)=>s+(+mp.totalPacked||0),0);
+  const totPack  = totAft+totMorn;
+  const totRewk  = p.packSessions.reduce((s,ps)=>s+(+ps.reworks||0),0)+p.morningPacks.reduce((s,mp)=>s+(+mp.reworks||0),0);
+  html += card('Performance',accent,`
+    <div class="stat-grid">
+      <div class="stat-box" style="background:${accent}0D;border-color:${accent}40"><div class="stat-val" style="color:${accent}">${totDisp||'—'}</div><div class="stat-lbl">Total Dispensed</div></div>
+      <div class="stat-box" style="background:#FEF2F2;border-color:#FECACA"><div class="stat-val" style="color:#DC2626">${totRej||'—'}</div><div class="stat-lbl">Total Rejected</div></div>
+      <div class="stat-box" style="background:${accent}0D;border-color:${accent}40"><div class="stat-val" style="color:${accent}">${pct(totDisp,totDisp+totRej)}</div><div class="stat-lbl">RFT Dispensed %</div></div>
+      <div class="stat-box" style="background:${accent}0D;border-color:${accent}40"><div class="stat-val" style="color:${accent}">${pct(totPack,totPack+totRewk)}</div><div class="stat-lbl">RFT Packed %</div></div>
+    </div>
+    <div class="formula-note"><strong>RFT Dispensed</strong> = Dispensed ÷ (Dispensed + Rejected)<br/><strong>RFT Packed</strong> = Packed ÷ (Packed + Reworks)</div>`);
+
+  // Seals
+  html += card('Seals Manufacturing',accent,renderSeals(accent));
+
+  // Ancillary
+  html += card('Ancillary Tasks',accent,`<div class="tick-grid">${PROCESS_ANCILLARY.map(task=>{
+    const chk=!!p.ancillary[task];
+    return `<div class="tick" style="border-color:${chk?accent:'#94A3B8'};background:${chk?accent+'0A':'#fff'}" onclick="toggleAncillary('${task.replace(/'/g,"\\'")}')">
+      <div class="tick-box" style="border-color:${chk?accent:'#94A3B8'};background:${chk?accent:'#fff'}">${chk?'<span style="color:#fff;font-size:11px;font-weight:800">✓</span>':''}</div>
+      <span class="tick-lbl" style="color:${chk?accent:'#475569'}">${esc(task)}</span>
+    </div>`;
+  }).join('')}</div>`);
+
+  // Comments
+  html += card('Further Comments',accent,areaIn(p.comments,`setProcessComments(this.value)`,'Any additional notes for handover…',4));
+  html += renderSignInStatus('process', accent);
+  html += `<button class="btn-submit" style="background:${accent};box-shadow:0 4px 14px ${accent}40" onclick="submitReport('process')">Submit Process Report</button>`;
+  document.getElementById('page-process').innerHTML = html;
+}
+
+function renderMornPack(mp,i,accent){
+  const isShort = mp.plateCount!==''&&mp.totalPacked!==''&&(+mp.totalPacked)<(+mp.plateCount);
+  return `<div class="subcard" style="background:${accent}04;border-color:${accent}">
+    <div class="subcard-header"><span class="subcard-title" style="color:${accent}">Morning Pack ${i+1}</span>${removeBtn(`removeMornPack('process','${mp.id}')`)}</div>
+    ${g2(field('Batch Number',txtIn(mp.batchNo,`updateMornPack('process','${mp.id}','batchNo',this.value)`)),
+         field('Plate Reference',txtIn(mp.plateRef,`updateMornPack('process','${mp.id}','plateRef',this.value)`)))}
+    <div class="mt">${field('Plates to Pack (carried from yesterday)',numIn(mp.plateCount,`updateMornPack('process','${mp.id}','plateCount',this.value)`))}</div>
+    ${g2(field('Time Started',timeIn(mp.timeStarted,`updateMornPack('process','${mp.id}','timeStarted',this.value)`)),
+         field('Time Finished',timeIn(mp.timeFinished,`updateMornPack('process','${mp.id}','timeFinished',this.value)`)),true)}
+    ${g2(field('Reworks',numIn(mp.reworks,`updateMornPack('process','${mp.id}','reworks',this.value)`)),
+         field('Total Packed',numIn(mp.totalPacked,`updateMornPack('process','${mp.id}','totalPacked',this.value)`)),true)}
+    ${isShort?`<div class="mt">${lbl('Batch short — packing shortfall due to issues?')}
+      ${yesNo(mp.shortfall?'yes':'no',`updateMornPack('process','${mp.id}','shortfall',true);renderNow()`,`updateMornPack('process','${mp.id}','shortfall',false);renderNow()`,accent)}
+      ${mp.shortfall?`<div class="mt">${field('Shortfall Reason',areaIn(mp.shortfallReason,`updateMornPack('process','${mp.id}','shortfallReason',this.value)`,'Describe what caused the shortfall…'))}</div>`:''}</div>`:''}
+  </div>`;
+}
+
+function renderPump(pump,i,accent){
+  const totRej = pump.rejections.reduce((s,r)=>s+(+r.count||0),0);
+  const disp = +pump.actualDispensed||0, sched = +pump.scheduledPlates||0;
+  const notFully = sched>0&&disp<sched;
+  const rft = pct(disp,disp+totRej), rftGood = parseFloat(rft)>=95;
+  return `<div class="subcard" style="background:${accent}04;border-color:${accent}">
+    <div class="subcard-header">
+      <span class="subcard-title" style="color:${accent}">Pump ${i+1}</span>
+      <div style="display:flex;gap:10px;align-items:center">
+        ${disp+totRej>0?`<span class="rft-badge" style="background:${rftGood?'#DCFCE7':'#FEE2E2'};color:${rftGood?'#15803D':'#DC2626'}">RFT ${rft}</span>`:''}
+        ${removeBtn(`removePump('process','${pump.id}')`)}
+      </div>
+    </div>
+    ${g2(field('Batch Number',txtIn(pump.batchNo,`updatePump('process','${pump.id}','batchNo',this.value)`)),
+         field('Plate Reference',txtIn(pump.plateRef,`updatePump('process','${pump.id}','plateRef',this.value)`)))}
+    ${g2(field('Time Received',timeIn(pump.timeReceived,`updatePump('process','${pump.id}','timeReceived',this.value)`)),
+         field('Time Finished',timeIn(pump.timeFinished,`updatePump('process','${pump.id}','timeFinished',this.value)`)),true)}
+    <div class="mt" style="max-width:200px">${field('TC',selIn(pump.tc,`updatePump('process','${pump.id}','tc',this.value)`,TC_OPTIONS))}</div>
+    ${divider('Plate Rejections')}
+    ${!pump.rejections.length?'<p style="font-size:13px;color:#64748B;margin-bottom:10px">No rejections recorded.</p>':''}
+    ${pump.rejections.map(r=>`<div style="display:grid;grid-template-columns:1fr 110px auto;gap:10px;align-items:center;margin-bottom:10px">
+      ${selIn(r.cause,`updateRej('process','${pump.id}','${r.id}','cause',this.value)`,REJECTION_CAUSES,'Rejection cause…')}
+      ${numIn(r.count,`updateRej('process','${pump.id}','${r.id}','count',this.value)`)}
+      ${removeBtn(`removeRej('process','${pump.id}','${r.id}')`)}
+    </div>`).join('')}
+    ${addBtn(`addRej('process','${pump.id}')`, 'Add Rejection', accent)}
+    ${divider('Outcome')}
+    ${g2(field('Scheduled Plates',numIn(pump.scheduledPlates,`updatePump('process','${pump.id}','scheduledPlates',this.value)`)),
+         field('Actual Dispensed',numIn(pump.actualDispensed,`updatePump('process','${pump.id}','actualDispensed',this.value)`)))}
+    ${notFully?`<div class="alert alert-warn mt"><div class="alert-warn-title">Not fully dispensed — ${sched-disp} plates short</div>
+      <div style="margin-top:8px">${field('Reason',areaIn(pump.notDispensedReason,`updatePump('process','${pump.id}','notDispensedReason',this.value)`,'Explain why…'))}</div></div>`:''}
+    <div class="mt">${field('Issues During Dispensing',areaIn(pump.issues,`updatePump('process','${pump.id}','issues',this.value)`,'Any issues encountered…'))}</div>
+  </div>`;
+}
+
+function renderPackSess(ps,i,accent){
+  const pumps = state.process.pumps;
+  const rem = Math.max(0,(+ps.plateCount||0)-(+ps.totalPacked||0));
+  const isShort = ps.plateCount!==''&&ps.totalPacked!==''&&(+ps.totalPacked)<(+ps.plateCount);
+  const isFull = ps.plateCount!==''&&ps.totalPacked!==''&&!isShort;
+  return `<div class="subcard" style="background:${accent}04;border-color:${accent}">
+    <div class="subcard-header"><span class="subcard-title" style="color:${accent}">Packing Session ${i+1}</span>${removeBtn(`removePackSess('process','${ps.id}')`)}</div>
+    ${field('Linked Pump',`<select onchange="selectPump('process','${ps.id}',this.value)"><option value="">Select pump…</option>
+      ${pumps.map((p,pi)=>`<option value="${p.id}"${ps.pumpId===p.id?' selected':''}>Pump ${pi+1}${p.batchNo?' — '+esc(p.batchNo):''}</option>`).join('')}</select>`)}
+    ${g2(field('Batch Number',txtIn(ps.batchNo,`updatePackSess('process','${ps.id}','batchNo',this.value)`)),
+         field('Plate Reference',txtIn(ps.plateRef,`updatePackSess('process','${ps.id}','plateRef',this.value)`)),true)}
+    ${g2(field('Time Started',timeIn(ps.timeStarted,`updatePackSess('process','${ps.id}','timeStarted',this.value)`)),
+         field('Time Finished',timeIn(ps.timeFinished,`updatePackSess('process','${ps.id}','timeFinished',this.value)`)),true)}
+    <div class="mt" style="max-width:200px">${field('Packing Line',selIn(ps.packingLine,`updatePackSess('process','${ps.id}','packingLine',this.value)`,PACKING_LINES))}</div>
+    ${g2(field('Plates Available',numIn(ps.plateCount,`updatePackSess('process','${ps.id}','plateCount',this.value)`)),
+         field('In-Process Reworks',numIn(ps.reworks,`updatePackSess('process','${ps.id}','reworks',this.value)`)),true)}
+    <div class="mt">${field('Total Packed',numIn(ps.totalPacked,`updatePackSess('process','${ps.id}','totalPacked',this.value)`))}</div>
+    ${isFull?'<div class="alert-success">Fully packed</div>':''}
+    ${isShort?`<div class="mt">${lbl(`Batch short — ${rem} plates remaining. Select reason:`)}
+      <div class="btn-yesno">
+        <button class="btn-yn" style="${ps.fullyPacked==='carryover'?`border-color:${accent};background:${accent}12;color:${accent}`:''}" onclick="setPackFully('process','${ps.id}','carryover')">Carrying over to tomorrow</button>
+        <button class="btn-yn" style="${ps.fullyPacked==='shortfall'?'border-color:#EF4444;background:#FEF2F2;color:#EF4444':''}" onclick="setPackFully('process','${ps.id}','shortfall')">Packing shortfall — issues</button>
+      </div>
+      ${ps.fullyPacked==='carryover'?`<div class="alert alert-warn" style="margin-top:10px"><div class="alert-warn-title">Carries to tomorrow morning</div>
+        <div class="alert-warn-body"><strong>${esc(ps.batchNo||'—')}</strong> · ${esc(ps.plateRef||'—')} · <strong>${rem} plates</strong></div></div>`:''}
+      ${ps.fullyPacked==='shortfall'?`<div class="mt">${field('Describe the issue',areaIn(ps.shortfallIssue,`updatePackSess('process','${ps.id}','shortfallIssue',this.value)`,'What caused the packing shortfall?'))}</div>`:''}
+    </div>`:''}
+    <div class="mt">${field('Issues During Packing',areaIn(ps.issues,`updatePackSess('process','${ps.id}','issues',this.value)`,'Any issues encountered…'))}</div>
+  </div>`;
+}
+
+function renderSeals(accent){
+  const seals = state.process.seals;
+  return seals.map((s,i)=>{
+    const ok=(+s.count||0)>=1500;
+    return `<div style="${i<seals.length-1?'margin-bottom:20px':''}">
+      ${seals.length>1?`<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:700;color:${accent}">Seal Run ${i+1}</span>${removeBtn(`removeSeal('${s.id}')`)}</div>`:''}
+      ${g2(field('Seal Type',selIn(s.type,`updateSeal('${s.id}','type',this.value)`,SEAL_TYPES)),
+           field('Seals Produced',`${numIn(s.count,`updateSeal('${s.id}','count',this.value)`)}${s.count!==''?`<div class="seal-target" style="color:${ok?'#15803D':'#DC2626'}">${ok?'Target met (1500+)':'Below target (1500)'}</div>`:''}`))}
+      ${s.count!==''&&!ok?`<div class="mt">${field('Justification',areaIn(s.justification,`updateSeal('${s.id}','justification',this.value)`,'Explain why target was not met…'))}</div>`:''}
+    </div>`;
+  }).join('') + addBtn(`addSeal()`, 'Add Seal Run', accent);
+}
+
+// ── LAB ────────────────────────────────────────────────────────────────────────
+function renderLab(){
+  const d = state.lab;
+  const accent = d.team?TEAM_COLORS[d.team].accent:'#1D4ED8';
+  let html = '';
+
+  // Team
+  html += card('Team',accent,`<div style="display:flex;gap:10px">${['yellow','blue','green'].map(t=>{
+    const tc=TEAM_COLORS[t],a=d.team===t;
+    return `<button class="btn-team" style="border-color:${a?tc.accent:'#94A3B8'};background:${a?tc.light:'#fff'};color:${a?tc.accent:'#475569'}" onclick="setTeam('lab','${t}')">${tc.label} Team</button>`;
+  }).join('')}</div>`);
+
+  // Headcount
+  const hc = d.headcount;
+  html += card('Headcount',accent,`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+    ${field('On Shift',numIn(hc.onShift,"setHC('lab','onShift',this.value)"))}
+    ${field('PTO',numIn(hc.pto,"setHC('lab','pto',this.value)"))}
+    ${field('Unplanned Absences',numIn(hc.absent,"setHC('lab','absent',this.value)"))}
+    ${field('Overtime',numIn(hc.overtime,"setHC('lab','overtime',this.value)"))}
+  </div>`);
+
+  // Priorities for the day (add section - before mandatory)
+  html += card('Priorities for the Day',accent,renderPriorities(accent));
+
+  // Mandatory tasks
+  const allMandatoryDone = LAB_MANDATORY_TASKS.every(t=>d.mandatoryTasks[t]);
+  html += card('Mandatory Tasks',accent,`
+    ${!allMandatoryDone?`<div style="font-size:12px;color:#EF4444;font-weight:700;margin-bottom:12px;padding:8px 12px;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:4px">All tasks below must be completed before submitting</div>`:''}
+    <div class="mandatory-grid">${LAB_MANDATORY_TASKS.map(task=>{
+      const chk=!!d.mandatoryTasks[task];
+      return `<div class="mandatory-tick${!chk?' unticked':''}" onclick="toggleMandatory('${task.replace(/'/g,"\\'")}')">
+        ${!chk?`<div class="mandatory-badge">Required</div>`:''}
+        <div class="tick-box" style="border-color:${chk?accent:'#EF4444'};background:${chk?accent:'#fff'}">${chk?'<span style="color:#fff;font-size:11px;font-weight:800">✓</span>':''}</div>
+        <span class="tick-lbl" style="color:${chk?accent:'#EF4444'};font-weight:${chk?'600':'700'}">${esc(task)}</span>
+      </div>`;
+    }).join('')}</div>`);
+
+  // Quality
+  html += card('Quality — Investigation Notes (INs)',accent,renderINs('lab',accent));
+
+  // Safety
+  html += card('Safety',accent,renderIncidents('lab',accent));
+
+  // Pump Workflow
+  html += card('Pump Workflow',accent,
+    d.pumps.map((pump,i)=>renderLabPump(pump,i,accent)).join('') +
+    (d.pumps.length<4?addBtn(`addLabPump()`,'Add Pump',accent):''));
+
+  // Priority Review (before EOD)
+  if(d.priorities.length>0) html += card('Priority Review',accent,renderPriorityReview(accent));
+
+  // EOD Tasks
+  html += card('End of Day Tasks',accent,renderEOD(accent));
+
+  // Comments
+  html += card('Further Comments',accent,areaIn(d.comments,`setLabComments(this.value)`,'Any additional notes for handover…',4));
+  html += renderSignInStatus('lab', accent);
+  html += `<button class="btn-submit" style="background:${accent};box-shadow:0 4px 14px ${accent}40" onclick="submitReport('lab')">Submit Production Lab Report</button>`;
+  document.getElementById('page-lab').innerHTML = html;
+}
+
+function renderLabPump(pump,i,accent){
+  let html = `<div class="subcard" style="background:${accent}04;border-color:${accent}">
+    <div class="subcard-header"><span class="subcard-title" style="color:${accent}">Pump ${i+1}</span>${removeBtn(`removeLabPump('${pump.id}')`)}</div>`;
+
+  LAB_STAGES.forEach(st=>{
+    const sg = pump[st.key];
+    const isLate = sg.onTime==='no';
+    const autoOnTime = sg.expectedEnd&&sg.actualEnd?(sg.actualEnd<=sg.expectedEnd?'yes':'no'):'';
+    const displayOnTime = sg.onTime||autoOnTime;
+    html += `<div class="stage-block" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="stage-title" style="color:${accent}">${esc(st.label)}</div>
+        ${displayOnTime?`<span class="on-time-indicator" style="background:${displayOnTime==='yes'?'#DCFCE7':'#FEE2E2'};color:${displayOnTime==='yes'?'#15803D':'#DC2626'}">${displayOnTime==='yes'?'On Time':'Delayed'}</span>`:''}
+      </div>
+      ${g2(field('Expected Start',timeIn(sg.expectedStart,`updateStage('${pump.id}','${st.key}','expectedStart',this.value)`)),
+           field('Actual Start',timeIn(sg.actualStart,`updateStage('${pump.id}','${st.key}','actualStart',this.value)`)))}
+      ${g2(field('Expected Finish',timeIn(sg.expectedEnd,`updateStage('${pump.id}','${st.key}','expectedEnd',this.value)`)),
+           field('Actual Finish',timeIn(sg.actualEnd,`updateStage('${pump.id}','${st.key}','actualEnd',this.value)`)),true)}
+      <div class="mt">${lbl('Completed on time?')}${yesNo(sg.onTime,
+        `updateStage('${pump.id}','${st.key}','onTime','yes');renderNow()`,
+        `updateStage('${pump.id}','${st.key}','onTime','no');renderNow()`,accent)}</div>
+      ${isLate?`<div class="mt">${field('Reason for delay',areaIn(sg.delayReason,`updateStage('${pump.id}','${st.key}','delayReason',this.value)`,'What caused the delay?'))}</div>`:''}
+    </div>`;
+  });
+
+  // Delivery
+  const del = pump.delivery;
+  const autoDelOnTime = del.expectedTime&&del.actualTime?(del.actualTime<=del.expectedTime?'yes':'no'):'';
+  const dispDelOnTime = del.onTime||autoDelOnTime;
+  html += `<div class="stage-block" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="stage-title" style="color:${accent}">Delivery to Process</div>
+      ${dispDelOnTime?`<span class="on-time-indicator" style="background:${dispDelOnTime==='yes'?'#DCFCE7':'#FEE2E2'};color:${dispDelOnTime==='yes'?'#15803D':'#DC2626'}">${dispDelOnTime==='yes'?'On Time':'Delayed'}</span>`:''}
+    </div>
+    ${g2(field('Expected Delivery Time',timeIn(del.expectedTime,`updateDelivery('${pump.id}','expectedTime',this.value)`)),
+         field('Actual Delivery Time',timeIn(del.actualTime,`updateDelivery('${pump.id}','actualTime',this.value)`)))}
+    <div class="mt">${lbl('Delivered on time?')}${yesNo(del.onTime,
+      `updateDelivery('${pump.id}','onTime','yes');renderNow()`,
+      `updateDelivery('${pump.id}','onTime','no');renderNow()`,accent)}</div>
+    ${del.onTime==='no'?`<div class="mt">${field('Reason for delay',areaIn(del.delayReason,`updateDelivery('${pump.id}','delayReason',this.value)`,'What caused the delay?'))}</div>`:''}
+  </div>`;
+
+  // Scheduled vs Dispensed
+  html += `${divider('Scheduled vs Dispensed')}
+    ${g2(field('Scheduled Plates',numIn(pump.scheduledPlates,`updateLabPump('${pump.id}','scheduledPlates',this.value)`)),
+         field('Dispensed Plates',numIn(pump.dispensedPlates,`updateLabPump('${pump.id}','dispensedPlates',this.value)`)))}`;
+
+  // Interruptions
+  html += divider('Pump Interruptions');
+  if(!pump.reprimes.length) html += '<p style="font-size:13px;color:#64748B;margin-bottom:10px">No interruptions recorded.</p>';
+  pump.reprimes.forEach((r,ri)=>{
+    html += `<div class="subcard" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:700;color:#475569">Interruption ${ri+1}</span>${removeBtn(`removeReprime('${pump.id}','${r.id}')`)}
+      </div>
+      ${field('Reason for Repriming',areaIn(r.reason,`updateReprime('${pump.id}','${r.id}','reason',this.value)`,'What caused the interruption?'))}
+      ${g2(field('Interruption Start',timeIn(r.interruptionStart,`updateReprime('${pump.id}','${r.id}','interruptionStart',this.value)`)),
+           field('Pump Running Again',timeIn(r.interruptionEnd,`updateReprime('${pump.id}','${r.id}','interruptionEnd',this.value)`)),true)}
+    </div>`;
+  });
+  html += addBtn(`addReprime('${pump.id}')`, 'Add Interruption', accent);
+  html += '</div>';
+  return html;
+}
+
+function renderPriorities(accent){
+  const pris = state.lab.priorities;
+  let html = !pris.length?'<p style="font-size:13px;color:#64748B;margin-bottom:12px">No priorities added yet.</p>':'';
+  pris.forEach((pr,i)=>{
+    const carried = !!pr.carriedFrom;
+    html += `<div class="priority-card${carried?' carried':''}">
+      ${carried?`<div class="priority-carried-badge">Carried from previous day</div>
+        <div style="font-size:12px;color:#92400E;margin-bottom:10px">Previous reason: ${esc(pr.carriedFrom)}</div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:700;color:#0F172A">Priority ${i+1}</span>${removeBtn(`removePriority('${pr.id}')`)}
+      </div>
+      ${field('Priority Description',areaIn(pr.description,`updatePriority('${pr.id}','description',this.value)`,'Describe the priority for today…'))}
+    </div>`;
+  });
+  return html + addBtn(`addPriority()`, 'Add Priority', accent);
+}
+
+function renderPriorityReview(accent){
+  const pris = state.lab.priorities;
+  if(!pris.length) return '';
+  let html = `<p style="font-size:13px;color:#475569;margin-bottom:16px">Review each priority added at the start of the day and confirm if it was completed.</p>`;
+  pris.forEach((pr,i)=>{
+    const carried = !!pr.carriedFrom;
+    html += `<div class="priority-card${carried?' carried':''}" style="border-color:${accent}">
+      ${carried?`<div class="priority-carried-badge">Carried from previous day</div>
+        <div style="font-size:12px;color:#92400E;margin-bottom:10px">Previous reason: ${esc(pr.carriedFrom)}</div>`:''}
+      <div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:12px">Priority ${i+1}: ${esc(pr.description)||'<span style="color:#94A3B8;font-style:italic">No description entered</span>'}</div>
+      ${lbl('Was this priority completed?')}
+      ${yesNo(pr.completed,
+        `updatePriority('${pr.id}','completed','yes');renderNow()`,
+        `updatePriority('${pr.id}','completed','no');renderNow()`,accent)}
+      ${pr.completed==='no'?`<div class="mt">${field('Reason not completed',areaIn(pr.notCompletedReason,`updatePriority('${pr.id}','notCompletedReason',this.value)`,'Why was this not completed?'))}
+        <div style="margin-top:10px;padding:10px 14px;background:#FFFBEB;border:2px solid #FCD34D;border-radius:4px;font-size:12px;color:#92400E;font-weight:600">
+          This priority will carry over to tomorrow with the reason above noted.
+        </div></div>`:''}
+      ${pr.completed==='yes'?`<div class="alert-success" style="margin-top:10px">Completed</div>`:''}
+    </div>`;
+  });
+  return html;
+}
+
+function renderEOD(accent){
+  let html = '';
+
+  // Mandatory tick tasks (PLA Backup, Stock Check)
+  const mandatoryKeys = ['plaBackup','stockCheck'];
+  const mandatoryLabels = {'plaBackup':'PLA Backup','stockCheck':'Stock Check for Next Day'};
+  html += `<div style="margin-bottom:16px">
+    <div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${accent};margin-bottom:10px">Mandatory — Must Be Completed</div>
+    <div class="mandatory-grid">${mandatoryKeys.map(key=>{
+      const chk = !!(state.lab.eodTasks[key]||{}).done;
+      return `<div class="mandatory-tick${!chk?' unticked':''}" onclick="toggleEODMandatory('${key}')">
+        ${!chk?`<div class="mandatory-badge">Required</div>`:''}
+        <div class="tick-box" style="border-color:${chk?accent:'#EF4444'};background:${chk?accent:'#fff'}">${chk?'<span style="color:#fff;font-size:11px;font-weight:800">✓</span>':''}</div>
+        <span class="tick-lbl" style="color:${chk?accent:'#EF4444'};font-weight:700">${mandatoryLabels[key]}</span>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+
+  // Yes/No tasks
+  html += `<div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#475569;margin-bottom:10px">Tasks</div>`;
+  EOD_TASKS_YESNO.forEach(task=>{
+    // Skip stockCheck here since it's in mandatory above
+    if(task.key==='stockCheck') return;
+    const val = state.lab.eodTasks[task.key]||{done:'',reason:''};
+    html += `<div class="eod-task">
+      <div style="font-size:13px;font-weight:600;color:#0F172A;margin-bottom:10px">${esc(task.label)}</div>
+      ${yesNo(val.done,
+        `updateEOD('${task.key}','done','yes');renderNow()`,
+        `updateEOD('${task.key}','done','no');renderNow()`,accent)}
+      ${val.done==='no'?`<div class="mt">${field('Reason',areaIn(val.reason,`updateEOD('${task.key}','reason',this.value)`,'Why was this not completed?'))}</div>`:''}
+    </div>`;
+  });
+  return html;
+}
+
+// ── Summary ─────────────────────────────────────────────────────────────────────
+function renderSummary(){
+  document.getElementById('page-summary').innerHTML = `
+    ${card('Combined Daily Summary','',`<div class="summary-placeholder">The full summary will populate here once both departments have submitted their reports.</div>`)}
+    ${card('Send to Microsoft Teams','',`
+      ${field('Teams Webhook URL',`<input type="text" value="${esc(state.webhookUrl)}" oninput="setWebhook(this.value)" placeholder=""/>`)}
+      <button class="btn-submit" style="background:#0F172A;margin-top:14px" id="teamsBtn" onclick="sendToTeams()">Send Summary to Teams</button>`)}`;
+}
+
+// ── State mutations ─────────────────────────────────────────────────────────────
+function setTeam(dept,t){ state[dept].team=t; render(); }
+function setHC(dept,k,v){ state[dept].headcount[k]=v.replace(/[^0-9]/g,''); }
+function setWebhook(v){ state.webhookUrl=v; localStorage.setItem('teamsWebhookUrl',v); }
+function setProcessComments(v){ state.process.comments=v; }
+function setLabComments(v){ state.lab.comments=v; }
+
+function addOpenIN(dept){ state[dept].openINs.push(newIN()); saveINs(dept); render(); }
+function updateOpenIN(dept,id,k,v){ state[dept].openINs=state[dept].openINs.map(x=>x.id===id?{...x,[k]:v}:x); saveINs(dept); }
+function closeIN(dept,id){ state[dept].openINs=state[dept].openINs.filter(x=>x.id!==id); saveINs(dept); render(); }
+function toggleWorkedOn(dept,id){ state[dept].openINs=state[dept].openINs.map(x=>x.id===id?{...x,workedOn:!x.workedOn}:x); render(); }
+function addNewIN(dept){ state[dept].newINs.push(newIN()); render(); }
+function updateNewIN(dept,id,k,v){ state[dept].newINs=state[dept].newINs.map(x=>x.id===id?{...x,[k]:v}:x); }
+function removeNewIN(dept,id){ state[dept].newINs=state[dept].newINs.filter(x=>x.id!==id); render(); }
+function promoteIN(dept,id){ const n=state[dept].newINs.find(x=>x.id===id); if(n){state[dept].openINs.push({...n,id:uid()}); saveINs(dept); removeNewIN(dept,id);} }
+function saveINs(dept){ localStorage.setItem(dept+'_openINs',JSON.stringify(state[dept].openINs)); }
+
+function addIncident(dept){ state[dept].incidents.push(newIncident()); render(); }
+function updateIncident(dept,id,k,v){ state[dept].incidents=state[dept].incidents.map(x=>x.id===id?{...x,[k]:v}:x); }
+function removeIncident(dept,id){ state[dept].incidents=state[dept].incidents.filter(x=>x.id!==id); render(); }
+
+function addMornPack(dept){ state[dept].morningPacks.push(newMornPack()); render(); }
+function updateMornPack(dept,id,k,v){
+  state[dept].morningPacks=state[dept].morningPacks.map(x=>x.id===id?{...x,[k]:v}:x);
+  if(['totalPacked','reworks','plateCount','shortfall','shortfallReason'].includes(k)) render();
+}
+function removeMornPack(dept,id){ if(state[dept].morningPacks.length>1){state[dept].morningPacks=state[dept].morningPacks.filter(x=>x.id!==id);render();} }
+
+function addPump(dept){ state[dept].pumps.push(newPump()); render(); }
+function updatePump(dept,id,k,v){
+  state[dept].pumps=state[dept].pumps.map(x=>x.id===id?{...x,[k]:v}:x);
+  if(['scheduledPlates','actualDispensed'].includes(k)) render();
+}
+function removePump(dept,id){ if(state[dept].pumps.length>1){state[dept].pumps=state[dept].pumps.filter(x=>x.id!==id);render();} }
+function addRej(dept,pid){ state[dept].pumps=state[dept].pumps.map(x=>x.id===pid?{...x,rejections:[...x.rejections,newRej()]}:x); render(); }
+function updateRej(dept,pid,rid,k,v){
+  state[dept].pumps=state[dept].pumps.map(x=>x.id===pid?{...x,rejections:x.rejections.map(r=>r.id===rid?{...r,[k]:v}:r)}:x);
+  if(k==='count') render();
+}
+function removeRej(dept,pid,rid){ state[dept].pumps=state[dept].pumps.map(x=>x.id===pid?{...x,rejections:x.rejections.filter(r=>r.id!==rid)}:x); render(); }
+
+function addPackSess(dept){ state[dept].packSessions.push(newPackSess()); render(); }
+function updatePackSess(dept,id,k,v){
+  state[dept].packSessions=state[dept].packSessions.map(x=>x.id===id?{...x,[k]:v}:x);
+  if(['totalPacked','reworks','plateCount'].includes(k)) render();
+}
+function removePackSess(dept,id){ state[dept].packSessions=state[dept].packSessions.filter(x=>x.id!==id); render(); }
+function setPackFully(dept,id,val){ state[dept].packSessions=state[dept].packSessions.map(x=>x.id===id?{...x,fullyPacked:val}:x); render(); }
+function selectPump(dept,sid,pid){
+  const pump=state[dept].pumps.find(x=>x.id===pid);
+  state[dept].packSessions=state[dept].packSessions.map(x=>x.id===sid?{...x,pumpId:pid,batchNo:pump?.batchNo||'',plateRef:pump?.plateRef||'',plateCount:pump?.actualDispensed||''}:x);
+  render();
+}
+function toggleAncillary(task){ state.process.ancillary[task]=!state.process.ancillary[task]; render(); }
+function addSeal(){ state.process.seals.push(newSeal()); render(); }
+function updateSeal(id,k,v){ state.process.seals=state.process.seals.map(x=>x.id===id?{...x,[k]:v}:x); if(k==='count') render(); }
+function removeSeal(id){ if(state.process.seals.length>1){state.process.seals=state.process.seals.filter(x=>x.id!==id);render();} }
+
+function toggleMandatory(task){ state.lab.mandatoryTasks[task]=!state.lab.mandatoryTasks[task]; render(); }
+function toggleEODMandatory(key){
+  const cur = (state.lab.eodTasks[key]||{}).done;
+  state.lab.eodTasks[key] = {...(state.lab.eodTasks[key]||{}), done: !cur};
+  render();
+}
+function addLabPump(){ state.lab.pumps.push(newLabPump()); render(); }
+function updateLabPump(id,k,v){
+  state.lab.pumps=state.lab.pumps.map(x=>x.id===id?{...x,[k]:v}:x);
+  if(['scheduledPlates','dispensedPlates'].includes(k)) render();
+}
+function removeLabPump(id){ if(state.lab.pumps.length>1){state.lab.pumps=state.lab.pumps.filter(x=>x.id!==id);render();} }
+function updateStage(pid,stage,k,v){
+  state.lab.pumps=state.lab.pumps.map(x=>x.id===pid?{...x,[stage]:{...x[stage],[k]:v}}:x);
+  if(k==='onTime'||k==='actualEnd') render();
+}
+function updateDelivery(pid,k,v){
+  state.lab.pumps=state.lab.pumps.map(x=>x.id===pid?{...x,delivery:{...x.delivery,[k]:v}}:x);
+  if(k==='onTime'||k==='actualTime') render();
+}
+function addReprime(pid){ state.lab.pumps=state.lab.pumps.map(x=>x.id===pid?{...x,reprimes:[...x.reprimes,newReprime()]}:x); render(); }
+function updateReprime(pid,rid,k,v){ state.lab.pumps=state.lab.pumps.map(x=>x.id===pid?{...x,reprimes:x.reprimes.map(r=>r.id===rid?{...r,[k]:v}:r)}:x); }
+function removeReprime(pid,rid){ state.lab.pumps=state.lab.pumps.map(x=>x.id===pid?{...x,reprimes:x.reprimes.filter(r=>r.id!==rid)}:x); render(); }
+
+function addPriority(){ state.lab.priorities.push(newPriority()); render(); }
+function updatePriority(id,k,v){ state.lab.priorities=state.lab.priorities.map(x=>x.id===id?{...x,[k]:v}:x); }
+function removePriority(id){ state.lab.priorities=state.lab.priorities.filter(x=>x.id!==id); render(); }
+function updateEOD(key,k,v){ state.lab.eodTasks[key]={...(state.lab.eodTasks[key]||{}),[k]:v}; }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GRAPH API INTEGRATION — Interactive login (Authorization Code + PKCE)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// No password is ever stored in this file. When someone needs to submit a
+// report, they click "Sign in" and are sent to Microsoft's own login page —
+// they type the shared account's username and password there, directly into
+// Microsoft's site, never into this app. Microsoft then redirects back here
+// with a token. This file only ever holds the Client ID and Tenant ID, which
+// are not secret — they identify the app, not a person or password.
+//
+// A Client Secret is NOT used here, because this flow (Authorization Code
+// with PKCE) is designed for apps that cannot safely keep a secret — like a
+// static HTML file. If your Azure App Registration was set up expecting a
+// secret for this flow, ask IT to configure it as a "public client" /
+// "mobile and desktop application" platform instead, which supports PKCE
+// without a secret.
+//
+// Fill in the two values below yourself, locally. Neither is sensitive
+// enough to need hiding, but keep this file itself on SharePoint, not
+// somewhere public.
+
+const CONFIG = {
+  TENANT_ID:        "b67d722d-aa8a-4777-a169-ebeb7a6a3b67",
+  CLIENT_ID:        "690c2fea-0068-4016-9990-bb209dfe4a91",
+  SITE_ID:          "thermofisher.sharepoint.com,9b075814-3492-4e86-bfe8-a09724e184dd,db2fc641-5584-41fa-bdfc-54f6dcba398d",             // from IT's Sites.Selected grant
+  SHAREPOINT_URL:   "https://thermofisher.sharepoint.com/sites/OperationsShiftLeads",
+
+  PROCESS_LIST_NAME: "ProcessShiftReports",
+  LAB_LIST_NAME:     "LabShiftReports",
+
+  TEAMS_CHAT_ID:    "19:7a4b8c3436fe41649a1d939679330d79@thread.v2",        // the 19:...@thread.v2 part
+  EMAIL_TO:         ["gary.neller@thermofisher.com", "carlos.ganhao@thermofisher.com", "irving.mena@thermofisher.com", "tapha.mekere@thermofisher.com", "emma.brunsden@thermofisher.com", "janette.haines@thermofisher.com", "ramanjeet.singh@thermofisher.com", "debbie.dixon@thermofisher.com", "srijana.pakhrin@thermofisher.com", "libin.george@thermofisher.com", "muhammedasaad.saeed@thermofisher.com", "daniel.pinkney@thermofisher.com", "arun.pious@thermofisher.com", "iryna.bezzubenko@thermofisher.com", "uche.nwaeze@thermofisher.com", "valentina.holiar@thermofisher.com", "grace.mwaura@thermofisher.com", "aida.visha@thermofisher.com"],// recipients for the email summary
+
+  // The exact URL this file is hosted at once uploaded to SharePoint.
+  // Azure AD redirects back here after login — must match exactly what's
+  // registered under App Registration → Authentication → Redirect URIs.
+  REDIRECT_URI:     "https://thermofisher.sharepoint.com/:u:/r/sites/OperationsShiftLeads/Shared%20Documents/shift-report-standalone.html?d=w8ca1ad69b3f6423e8a7acf0807fdddb7&csf=1&web=1&e=ed5BRz",
+
+  // Leave true until CONFIG is filled in — blocks real network calls and
+  // shows a clear message instead, so the form is still safely demoable.
+  DEMO_MODE: false,
+};
+
+const GRAPH_SCOPES = "Sites.Selected User.Read Chat.ReadWrite ChatMessage.Send Mail.Send offline_access";
+
+// ── PKCE helpers ────────────────────────────────────────────────────────────
+function _base64url(buf){
+  return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function _sha256(str){
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+}
+function _randomString(len=64){
+  const arr = new Uint8Array(len);
+  crypto.getRandomValues(arr);
+  return _base64url(arr.buffer);
+}
+
+// ── Sign-in: redirects to Microsoft's login page ───────────────────────────
+async function signIn(dept){
+  const verifier = _randomString();
+  const challenge = _base64url(await _sha256(verifier));
+  sessionStorage.setItem('pkce_verifier', verifier);
+  sessionStorage.setItem('signin_dept', dept);
+
+  const params = new URLSearchParams({
+    client_id: CONFIG.CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: CONFIG.REDIRECT_URI,
+    response_mode: 'query',
+    scope: GRAPH_SCOPES,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+    state: dept,
+  });
+  window.location.href = `https://login.microsoftonline.com/${CONFIG.TENANT_ID}/oauth2/v2.0/authorize?${params}`;
+}
+
+// ── Handle the redirect back from Microsoft after login ────────────────────
+async function _handleAuthRedirect(){
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const dept = params.get('state');
+  if(!code || !dept) return;
+
+  const verifier = sessionStorage.getItem('pkce_verifier');
+  const body = new URLSearchParams({
+    client_id: CONFIG.CLIENT_ID,
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: CONFIG.REDIRECT_URI,
+    code_verifier: verifier,
+  });
+
+  try{
+    const res = await fetch(`https://login.microsoftonline.com/${CONFIG.TENANT_ID}/oauth2/v2.0/token`, {
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body,
+    });
+    if(!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    _tokenCache[dept] = { token: data.access_token, refreshToken: data.refresh_token, expiresAt: Date.now() + (data.expires_in*1000) };
+    sessionStorage.setItem(`token_${dept}`, JSON.stringify(_tokenCache[dept]));
+  } catch(err){
+    console.error('Sign-in failed:', err);
+    alert('Sign-in failed. Please try again.');
+  }
+
+  // Clean the URL so the auth code isn't left visible or reused
+  window.history.replaceState({}, document.title, CONFIG.REDIRECT_URI);
+}
+
+// ── Token cache (per department), backed by sessionStorage ─────────────────
+const _tokenCache = { process: null, lab: null };
+(function _restoreTokens(){
+  ['process','lab'].forEach(dept=>{
+    try{
+      const raw = sessionStorage.getItem(`token_${dept}`);
+      if(raw) _tokenCache[dept] = JSON.parse(raw);
+    }catch(e){}
+  });
+})();
+
+function isSignedIn(dept){
+  const c = _tokenCache[dept];
+  return !!(c && c.expiresAt > Date.now());
+}
+
+async function getAccessToken(dept){
+  const cached = _tokenCache[dept];
+  if(cached && cached.expiresAt > Date.now() + 30000) return cached.token;
+  // Token expired or missing — require a fresh sign-in rather than
+  // silently using a refresh token, since this is a shared account and
+  // we want each session to be a deliberate sign-in.
+  throw new Error('SIGN_IN_REQUIRED');
+}
+
+async function graphFetch(dept, path, options={}){
+  const token = await getAccessToken(dept);
+  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+    ...options,
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json', ...(options.headers||{}) },
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    throw new Error(`Graph API error (${res.status}): ${errText.slice(0,300)}`);
+  }
+  return res.status===204 ? null : res.json();
+}
+
+// ── Build the SharePoint list item fields from state ───────────────────────
+function buildProcessFields(){
+  const p = state.process;
+  const totDisp = p.pumps.reduce((s,pump)=>s+(+pump.actualDispensed||0),0);
+  const totRej  = p.pumps.reduce((s,pump)=>s+pump.rejections.reduce((rs,r)=>rs+(+r.count||0),0),0);
+  const totAft  = p.packSessions.reduce((s,ps)=>s+(+ps.totalPacked||0),0);
+  const totMorn = p.morningPacks.reduce((s,mp)=>s+(+mp.totalPacked||0),0);
+  const totPack = totAft+totMorn;
+  const totRewk = p.packSessions.reduce((s,ps)=>s+(+ps.reworks||0),0)+p.morningPacks.reduce((s,mp)=>s+(+mp.reworks||0),0);
+  return {
+    Title: `Process — ${todayStr()} — ${p.team||'No team'}`,
+    Team: p.team,
+    Date: new Date().toISOString(),
+    OnShift: +p.headcount.onShift||0,
+    PTO: +p.headcount.pto||0,
+    UnplannedAbsences: +p.headcount.absent||0,
+    Overtime: +p.headcount.overtime||0,
+    TotalDispensed: totDisp,
+    TotalRejected: totRej,
+    RFTDispensed: pct(totDisp,totDisp+totRej),
+    TotalPacked: totPack,
+    RFTPacked: pct(totPack,totPack+totRewk),
+    SealsProduced: p.seals.reduce((s,x)=>s+(+x.count||0),0),
+    Comments: p.comments,
+    FullDataJSON: JSON.stringify(p), // full state preserved for later reference
+  };
+}
+function buildLabFields(){
+  const d = state.lab;
+  return {
+    Title: `Lab — ${todayStr()} — ${d.team||'No team'}`,
+    Team: d.team,
+    Date: new Date().toISOString(),
+    OnShift: +d.headcount.onShift||0,
+    PTO: +d.headcount.pto||0,
+    UnplannedAbsences: +d.headcount.absent||0,
+    Overtime: +d.headcount.overtime||0,
+    Comments: d.comments,
+    FullDataJSON: JSON.stringify(d),
+  };
+}
+
+// ── Submit: save to SharePoint, post to Teams, send email ─────────────────
+async function submitReport(dept){
+  const btn = event.target;
+  const originalText = btn.textContent;
+  const accent = state[dept].team ? TEAM_COLORS[state[dept].team].accent : (dept==='process'?'#7C3AED':'#1D4ED8');
+
+  if(CONFIG.DEMO_MODE){
+    alert('DEMO MODE — CONFIG is not filled in yet, so nothing was actually sent.\n\nFill in the CONFIG block near the top of the file with your real Client ID, Tenant ID, Site ID, Teams chat ID and email addresses, then set DEMO_MODE to false.');
+    return;
+  }
+
+  if(!isSignedIn(dept)){
+    const label = dept==='process' ? 'UKEG2.Production' : 'UKEG2.Prodlab';
+    const proceed = confirm(`You need to sign in with ${label} before submitting.\n\nClick OK to go to the Microsoft sign-in page now. Your work in this report is kept in the browser and will still be here when you're redirected back — but save a copy of anything critical just in case.`);
+    if(proceed) signIn(dept);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try{
+    // 1. Save to SharePoint
+    const listName = dept==='process' ? CONFIG.PROCESS_LIST_NAME : CONFIG.LAB_LIST_NAME;
+    const fields = dept==='process' ? buildProcessFields() : buildLabFields();
+    await graphFetch(dept, `/sites/${CONFIG.SITE_ID}/lists/${listName}/items`, {
+      method: 'POST',
+      body: JSON.stringify({ fields }),
+    });
+
+    btn.textContent = 'Posting to Teams…';
+
+    // 2. Post to Teams group chat
+    const summaryText = dept==='process'
+      ? `Process shift report submitted — ${state.process.team||'no team'} team.`
+      : `Production Lab shift report submitted — ${state.lab.team||'no team'} team.`;
+    await graphFetch(dept, `/chats/${CONFIG.TEAMS_CHAT_ID}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({
+        body: { contentType: 'html', content: `<b>${todayStr()}</b><br/>${summaryText}` },
+      }),
+    });
+
+    btn.textContent = 'Sending email…';
+
+    // 3. Send email
+    await graphFetch(dept, `/me/sendMail`, {
+      method: 'POST',
+      body: JSON.stringify({
+        message: {
+          subject: `${dept==='process'?'Process':'Production Lab'} Shift Report — ${todayStr()}`,
+          body: { contentType: 'HTML', content: `<p>${summaryText}</p><p>Full report saved to SharePoint.</p>` },
+          toRecipients: CONFIG.EMAIL_TO.map(addr=>({ emailAddress:{ address: addr } })),
+        },
+      }),
+    });
+
+    btn.textContent = 'Report Submitted';
+    btn.style.background = '#15803D';
+  } catch(err){
+    console.error(err);
+    if(err.message === 'SIGN_IN_REQUIRED'){
+      alert('Your sign-in has expired. Please sign in again and resubmit.');
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    }
+    alert(`Submission failed: ${err.message}\n\nCheck the browser console for details. Nothing further was sent once this step failed.`);
+    btn.textContent = 'Submit Failed — Retry';
+    btn.style.background = '#DC2626';
+    btn.disabled = false;
+    return;
+  }
+
+  setTimeout(()=>{
+    btn.textContent = originalText;
+    btn.style.background = accent;
+    btn.disabled = false;
+  }, 4000);
+}
+
+async function sendToTeams(){
+  if(!state.webhookUrl){alert('Please enter your Teams webhook URL.');return;}
+  const btn=document.getElementById('teamsBtn');btn.textContent='Sending…';
+  const payload={type:'message',attachments:[{contentType:'application/vnd.microsoft.card.adaptive',content:{type:'AdaptiveCard',version:'1.4',body:[
+    {type:'TextBlock',size:'Large',weight:'Bolder',text:`Daily Shift Summary — ${todayStr()}`},
+    {type:'TextBlock',text:'Combined report from Process and Production Lab.',wrap:true,color:'Accent'},
+  ]}}]};
+  try{
+    await fetch(state.webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    btn.textContent='Sent to Teams';btn.style.background='#15803D';
+    setTimeout(()=>{btn.textContent='Send Summary to Teams';btn.style.background='#0F172A';},4000);
+  }catch(e){alert('Failed to send. Check your webhook URL.');btn.textContent='Send Summary to Teams';}
+}
+
+let _renderTimer = null;
+function render(){
+  clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(_doRender, 320);
+}
+function renderNow(){ clearTimeout(_renderTimer); _doRender(); }
+function _doRender(){
+  const scrollY = window.scrollY;
+  // Track focus by index among all focusable inputs in the active page
+  const page = document.getElementById('page-'+activeTab);
+  const inputs = page ? Array.from(page.querySelectorAll('input,textarea,select')) : [];
+  const focused = document.activeElement;
+  let focusIdx = -1, focusSel = null, focusSelEnd = null;
+  if(focused && inputs.includes(focused)){
+    focusIdx = inputs.indexOf(focused);
+    try{ focusSel = focused.selectionStart; focusSelEnd = focused.selectionEnd; }catch(e){}
+  }
+
+  if(activeTab==='process') renderProcess();
+  else if(activeTab==='lab') renderLab();
+  else renderSummary();
+
+  // Restore focus to same index
+  if(focusIdx >= 0){
+    const newPage = document.getElementById('page-'+activeTab);
+    const newInputs = newPage ? Array.from(newPage.querySelectorAll('input,textarea,select')) : [];
+    const target = newInputs[focusIdx];
+    if(target){
+      target.focus({preventScroll:true});
+      if(focusSel !== null){
+        try{ target.setSelectionRange(focusSel, focusSelEnd||focusSel); }catch(e){}
+      }
+    }
+  }
+  window.scrollTo(0, scrollY);
+}
+function renderAll(){
+  const scrollY = window.scrollY;
+  renderProcess(); renderLab(); renderSummary();
+  window.scrollTo(0, scrollY);
+}
+document.getElementById('headerDate').textContent = todayStr();
+
+// If Microsoft just redirected back here after login, capture the token
+// before the first render, then render normally.
+_handleAuthRedirect().then(renderAll);
+</script>
+</body>
+</html>
